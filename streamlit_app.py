@@ -1,6 +1,7 @@
 # Import python packages
 import streamlit as st
 import os
+import requests
 
 # Write directly to the app
 st.title("Customize Your Smoothie! :cup_with_straw:")
@@ -35,7 +36,6 @@ if ingredients:
     for fruit_chosen in ingredients:
         ingredients_string += fruit_chosen
 
-
 # Build the SQL INSERT statement
 my_insert_stmt = """insert into smoothies.public.orders
                     (ingredients, name_on_order)
@@ -48,3 +48,11 @@ submit = st.button("Submit")
 if submit:
     session.sql(my_insert_stmt).collect()
     st.success("Your Smoothie is ordered!", icon="✅")
+
+# Call the SmoothieFroot API
+smoothiefroot_response = requests.get(
+    "https://my.smoothiefroot.com/api/fruit/watermelon"
+)
+
+# Display the API response
+st.text(smoothiefroot_response)
