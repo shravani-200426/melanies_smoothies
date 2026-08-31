@@ -35,7 +35,6 @@ if ingredients:
     for fruit_chosen in ingredients:
         ingredients_string += fruit_chosen
 
-    st.write("Your ingredients as a string:", ingredients_string)
 
 # Build the SQL INSERT statement
 my_insert_stmt = """insert into smoothies.public.orders
