@@ -28,15 +28,18 @@ ingredients = st.multiselect(
     max_selections=5
 )
 
-# Show nutrition information for selected fruits
+# Show nutrition information
 if ingredients:
     st.subheader("Nutrition Information")
 
     for fruit_chosen in ingredients:
 
+        # Convert fruit name to API format
+        fruit_for_api = fruit_chosen.lower().replace(" ", "")
+
         # Call SmoothieFroot API
         smoothiefroot_response = requests.get(
-            f"https://my.smoothiefroot.com/api/fruit/{fruit_chosen.lower()}"
+            f"https://my.smoothiefroot.com/api/fruit/{fruit_for_api}"
         )
 
         # Check if API call was successful
@@ -51,24 +54,13 @@ if ingredients:
                 f"Could not get nutrition information for {fruit_chosen}"
             )
 
-# Create an empty string
-ingredients_string = ""
-
-# Convert the list to a string
-if ingredients:
-    ingredients_string = ", ".join(ingredients)
-
-# Build the SQL INSERT statement
-my_insert_stmt = """
-    INSERT INTO smoothies.public.orders
-    (ingredients, name_on_order)
-    VALUES (%s, %s)
-"""
+# Create ingredients string
+ingredients_string = ", ".join(ingredients)
 
 # Create Submit button
 submit = st.button("Submit")
 
-# Insert the order into Snowflake
+# Insert order into Snowflake
 if submit:
 
     if not name_on_order:
@@ -78,10 +70,13 @@ if submit:
         st.warning("Please choose at least one ingredient.")
 
     else:
-        session.sql(
-            my_insert_stmt,
-            params=[ingredients_string, name_on_order]
-        ).collect()
+        my_insert_stmt = f"""
+            INSERT INTO smoothies.public.orders
+            (ingredients, name_on_order)
+            VALUES ('{ingredients_string}', '{name_on_order}')
+        """
+
+        session.sql(my_insert_stmt).collect()
 
         st.success(
             "Your Smoothie is ordered!",
