@@ -13,13 +13,15 @@ session = conn.session()
 # Add name input
 name_on_order = st.text_input("Name on order:")
 
-# Get fruit names from Snowflake
+# Get fruit names and API search values from Snowflake
 my_dataframe = session.table(
     "smoothies.public.fruit_options"
-).select("FRUIT_NAME")
+).select("FRUIT_NAME", "SEARCH_ON")
 
-# Create a list of fruit names
-fruit_list = my_dataframe.to_pandas()["FRUIT_NAME"].tolist()
+fruit_data = my_dataframe.to_pandas()
+
+# Create list for the multiselect
+fruit_list = fruit_data["FRUIT_NAME"].tolist()
 
 # Create a multiselect widget
 ingredients = st.multiselect(
@@ -28,26 +30,30 @@ ingredients = st.multiselect(
     max_selections=5
 )
 
-# Show nutrition information
+# Show nutrition information for selected fruits
 if ingredients:
     st.subheader("Nutrition Information")
 
     for fruit_chosen in ingredients:
 
-        # Convert fruit name to API format
-        fruit_for_api = fruit_chosen.lower().replace(" ", "")
+        # Find the SEARCH_ON value for the selected fruit
+        search_on = fruit_data.loc[
+            fruit_data["FRUIT_NAME"] == fruit_chosen,
+            "SEARCH_ON"
+        ].iloc[0]
 
-        # Call SmoothieFroot API
+        # Call SmoothieFroot API using SEARCH_ON
         smoothiefroot_response = requests.get(
-            f"https://my.smoothiefroot.com/api/fruit/{fruit_for_api}"
+            f"https://my.smoothiefroot.com/api/fruit/{search_on.lower().replace(' ', '')}"
         )
 
         # Check if API call was successful
         if smoothiefroot_response.status_code == 200:
-            fruit_data = smoothiefroot_response.json()
+
+            api_data = smoothiefroot_response.json()
 
             st.write(f"### {fruit_chosen}")
-            st.json(fruit_data)
+            st.json(api_data)
 
         else:
             st.write(
