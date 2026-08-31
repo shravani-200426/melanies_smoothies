@@ -1,9 +1,7 @@
+```python
 # Import python packages
 import streamlit as st
 import os
-
-# Import Snowpark column function
-from snowflake.snowpark.functions import col
 
 # Write directly to the app
 st.title("Customize Your Smoothie! :cup_with_straw:")
@@ -12,7 +10,7 @@ st.write(
 )
 
 # Create a connection to Snowflake
-conn = st.connection("snowflake", ttl=os.getenv("SNOWFLAKE_CONNECTION_TTL"))
+conn = st.connection("snowflake")
 session = conn.session()
 
 # Add name input
@@ -20,7 +18,7 @@ name_on_order = st.text_input("Name on order:")
 
 # Get only the FRUIT_NAME column
 my_dataframe = session.table("smoothies.public.fruit_options").select(
-    col("FRUIT_NAME")
+    "FRUIT_NAME"
 )
 
 # Create a multiselect widget
@@ -51,4 +49,5 @@ submit = st.button("Submit")
 # Insert the order into Snowflake
 if submit:
     session.sql(my_insert_stmt).collect()
-    st.success('Your Smoothie is ordered!', icon="✅")
+    st.success("Your Smoothie is ordered!", icon="✅")
+```
