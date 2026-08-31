@@ -1,6 +1,7 @@
 # Import python packages
 import streamlit as st
 import requests
+import pandas as pd
 
 # Write directly to the app
 st.title("Customize Your Smoothie! 🥤")
@@ -18,10 +19,11 @@ my_dataframe = session.table(
     "smoothies.public.fruit_options"
 ).select("FRUIT_NAME", "SEARCH_ON")
 
-fruit_data = my_dataframe.to_pandas()
+# Convert Snowpark dataframe to Pandas dataframe
+pd_df = my_dataframe.to_pandas()
 
 # Create list for the multiselect
-fruit_list = fruit_data["FRUIT_NAME"].tolist()
+fruit_list = pd_df["FRUIT_NAME"].tolist()
 
 # Create a multiselect widget
 ingredients = st.multiselect(
@@ -37,10 +39,19 @@ if ingredients:
     for fruit_chosen in ingredients:
 
         # Find the SEARCH_ON value for the selected fruit
-        search_on = fruit_data.loc[
-            fruit_data["FRUIT_NAME"] == fruit_chosen,
+        search_on = pd_df.loc[
+            pd_df["FRUIT_NAME"] == fruit_chosen,
             "SEARCH_ON"
         ].iloc[0]
+
+        # Show the value being used for the API search
+        st.write(
+            "The search value for ",
+            fruit_chosen,
+            " is ",
+            search_on,
+            "."
+        )
 
         # Call SmoothieFroot API using SEARCH_ON
         smoothiefroot_response = requests.get(
